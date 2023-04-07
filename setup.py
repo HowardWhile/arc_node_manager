@@ -13,13 +13,14 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='user',
+    maintainer='Howard Cheng',
     maintainer_email='makubex49＠gmail.com',
-    description='TODO: Package description',
+    description='ros2 node manager',
     license='LGPL-3.0-only',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'node_manager = arc_node_manager.arc_node_manager:main'
         ],
     },
 )
