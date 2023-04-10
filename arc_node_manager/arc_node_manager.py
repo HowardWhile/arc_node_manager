@@ -1,39 +1,36 @@
-import rclpy
-from rclpy.node import Node
+# This Python file uses the following encoding: utf-8
+import os
+from pathlib import Path
+import sys
 
-from std_msgs.msg import String
+from PySide2.QtWidgets import QApplication, QWidget
+from PySide2.QtCore import QFile
+from PySide2.QtUiTools import QUiLoader
 
 
-class MinimalPublisher(Node):
-
+class Widget(QWidget):
     def __init__(self):
-        super().__init__('minimal_publisher')
-        self.publisher_ = self.create_publisher(String, 'topic', 10)
-        timer_period = 0.5  # seconds
-        self.timer = self.create_timer(timer_period, self.timer_callback)
-        self.i = 0
+        super(Widget, self).__init__()
+        self.load_ui()
 
-    def timer_callback(self):
-        msg = String()
-        msg.data = 'Hello World: %d' % self.i
-        self.publisher_.publish(msg)
-        self.get_logger().info('Publishing: "%s"' % msg.data)
-        self.i += 1
-
-
+    def load_ui(self):
+        print("[debug]: "+__file__);
+        loader = QUiLoader()     
+        
+        path = os.fspath(Path("/home/user/ros2_ws/src/arc_node_manager/arc_node_manager/arc_node_manager.py").resolve().parent / "form.ui")
+        ui_file = QFile(path)
+        ui_file.open(QFile.ReadOnly)
+        loader.load(ui_file, self)
+        ui_file.close()
+        
 def main(args=None):
-    rclpy.init(args=args)
+    # rclpy.init(args=args)    
+    app = QApplication([])
+    widget = Widget()
+    widget.show()
+    sys.exit(app.exec_())
+    # rclpy.shutdown()
 
-    minimal_publisher = MinimalPublisher()
-
-    rclpy.spin(minimal_publisher)
-
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
-    minimal_publisher.destroy_node()
-    rclpy.shutdown()
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
+
