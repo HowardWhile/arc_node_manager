@@ -37,20 +37,18 @@ ros2 run arc_node_manager node_manager
 
 ## Develop
 
-````bash
-cd ~/ros2_ws/src/arc_node_manager/
-````
-
 - VS Code
 
 ```
+cd ~/ros2_ws/src/arc_node_manager/
 code .
 ```
 
 - Qt Creator
 
 ```shell
-qtcreator arc_node_manager/arc_node_manager.pyproject
+cd ~/ros2_ws/src/arc_node_manager/
+qtcreator arc_node_manager.pyproject
 ```
 
 

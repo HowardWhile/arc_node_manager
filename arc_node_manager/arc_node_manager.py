@@ -8,6 +8,7 @@ from PySide2.QtCore import QFile
 from PySide2.QtUiTools import QUiLoader
 
 from os.path import exists
+from ament_index_python import get_resource
 
 
 class Widget(QWidget):
@@ -18,19 +19,23 @@ class Widget(QWidget):
     def load_ui(self):
         loader = QUiLoader()
 
-        ui_path_qt = os.fspath(Path(os.path.dirname(__file__)) / "form.ui")
+        # ui path when run as qt_creator, vscode or `python` command
+        ui_path_qt = os.fspath(
+            Path(os.path.dirname(__file__)).parent / "resource/form.ui"
+        )
 
-        # /ros2_ws/install/arc_node_manager/lib/python3.10/site-packages/arc_node_manager/form.ui
-        # -> /ros2_ws/install/arc_node_manager/share/arc_node_manager/form.ui
-        ui_path_ros2 = os.fspath(
-            Path(os.path.dirname(__file__)).parent.parent.parent.parent
-            / "share/arc_node_manager/form.ui"
+        # ui path when run as `ros2 run pkg node`
+        _, package_path = get_resource("packages", "arc_node_manager")
+        ui_path_ros2 = os.path.join(
+            package_path, "share", "arc_node_manager", "resource", "form.ui"
         )
 
         if exists(ui_path_qt) == True:
             ui_file = QFile(ui_path_qt)
+
         elif exists(ui_path_ros2) == True:
             ui_file = QFile(ui_path_ros2)
+
         else:
             print("can not find form.ui from below path")
             print("ui_path_qt:" + ui_path_qt)
