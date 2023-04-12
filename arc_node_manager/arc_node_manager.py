@@ -1,14 +1,17 @@
 # This Python file uses the following encoding: utf-8
 import os
-from pathlib import Path
-import sys
+import rclpy
+import threading
 
-from PySide2.QtWidgets import QApplication, QWidget
+from rclpy.node import Node
+from os.path import exists
+from pathlib import Path
+
+from ament_index_python import get_resource
+from PySide2.QtWidgets import QApplication
+from PySide2.QtWidgets import QWidget
 from PySide2.QtCore import QFile
 from PySide2.QtUiTools import QUiLoader
-
-from os.path import exists
-from ament_index_python import get_resource
 
 
 class Widget(QWidget):
@@ -19,10 +22,10 @@ class Widget(QWidget):
     def load_ui(self):
         loader = QUiLoader()
 
+        ui_file = "form.ui"
         # ui path when run as qt_creator, vscode or `python` command
-        ui_path_qt = os.fspath(
-            Path(os.path.dirname(__file__)).parent / "resource/form.ui"
-        )
+        ui_path_qt = os.path.join(
+            Path(os.path.dirname(__file__)).parent, "resource", ui_file)
 
         # ui path when run as `ros2 run pkg node`
         _, package_path = get_resource("packages", "arc_node_manager")
@@ -30,10 +33,10 @@ class Widget(QWidget):
             package_path, "share", "arc_node_manager", "resource", "form.ui"
         )
 
-        if exists(ui_path_qt) == True:
+        if exists(ui_path_qt):
             ui_file = QFile(ui_path_qt)
 
-        elif exists(ui_path_ros2) == True:
+        elif exists(ui_path_ros2):
             ui_file = QFile(ui_path_ros2)
 
         else:
@@ -48,13 +51,19 @@ class Widget(QWidget):
 
 
 def main(args=None):
-    # rclpy.init(args=args)
+    rclpy.init(args=args)
+
+    node = rclpy.create_node('node_manager')
+    # Spin in a separate thread
+    thread = threading.Thread(target=rclpy.spin, args=(node, ), daemon=True)
+    thread.start()
+
     app = QApplication([])
     widget = Widget()
     widget.show()
-    sys.exit(app.exec_())
-    # rclpy.shutdown()
+    ret = app.exec_()
+    rclpy.shutdown()
+    thread.join()
 
 
-if __name__ == "__main__":
-    main()
+main()
