@@ -19,11 +19,17 @@ class MainForm(QWidget):
         self.ini_ros_node()
         self.init_ui()
 
+    def release(self):
+        print('release called')
+        rclpy.shutdown()
+        self.spin_thread.join()
+
     def ini_ros_node(self):
         rclpy.init(args=sys.argv)
         self.node = rclpy.create_node('node_manager')
         # Spin in a separate thread
-        self.spin_thread = threading.Thread(target=rclpy.spin, args=(self.node, ), daemon=True)
+        self.spin_thread = threading.Thread(
+            target=rclpy.spin, args=(self.node, ), daemon=True)
         self.spin_thread.start()
 
     def init_ui(self):
@@ -56,14 +62,14 @@ class MainForm(QWidget):
         btn3.clicked.connect(lambda: lst.addItem('Button 3 clicked'))
 
 
-def main(args=None):   
+def main(args=None):
 
     app = QApplication(sys.argv)
     ex = MainForm()
     ex.show()
     ret = app.exec_()
-    
-    ex.spin_thread.join()
+    ex.release()
     sys.exit(ret)
+
 
 main()
