@@ -1,4 +1,7 @@
 # This Python file uses the following encoding: utf-8
+import sys
+from PySide2.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QListWidget
+
 import os
 import rclpy
 import threading
@@ -8,62 +11,59 @@ from os.path import exists
 from pathlib import Path
 
 from ament_index_python import get_resource
-from PySide2.QtWidgets import QApplication
-from PySide2.QtWidgets import QWidget
-from PySide2.QtCore import QFile
-from PySide2.QtUiTools import QUiLoader
 
 
-class Widget(QWidget):
+class MainForm(QWidget):
     def __init__(self):
-        super(Widget, self).__init__()
-        self.load_ui()
+        super(MainForm, self).__init__()
+        self.ini_ros_node()
+        self.init_ui()
 
-    def load_ui(self):
-        loader = QUiLoader()
+    def ini_ros_node(self):
+        rclpy.init(args=sys.argv)
+        self.node = rclpy.create_node('node_manager')
+        # Spin in a separate thread
+        self.spin_thread = threading.Thread(target=rclpy.spin, args=(self.node, ), daemon=True)
+        self.spin_thread.start()
 
-        ui_file = "form.ui"
-        # ui path when run as qt_creator, vscode or `python` command
-        ui_path_qt = os.path.join(
-            Path(os.path.dirname(__file__)).parent, "resource", ui_file)
+    def init_ui(self):
+        # Create widgets
+        btn1 = QPushButton('Button 1')
+        btn2 = QPushButton('Button 2')
+        btn3 = QPushButton('Button 3')
+        lst = QListWidget()
 
-        # ui path when run as `ros2 run pkg node`
-        _, package_path = get_resource("packages", "arc_node_manager")
-        ui_path_ros2 = os.path.join(
-            package_path, "share", "arc_node_manager", "resource", "form.ui"
-        )
+        # Create layouts
+        hbox = QHBoxLayout()
+        hbox.addWidget(btn1)
+        hbox.addWidget(btn2)
+        hbox.addWidget(btn3)
 
-        if exists(ui_path_qt):
-            ui_file = QFile(ui_path_qt)
+        vbox = QVBoxLayout()
+        vbox.addLayout(hbox)
+        vbox.addWidget(lst)
 
-        elif exists(ui_path_ros2):
-            ui_file = QFile(ui_path_ros2)
+        # Set main layout
+        self.setLayout(vbox)
 
-        else:
-            print("can not find form.ui from below path")
-            print("ui_path_qt:" + ui_path_qt)
-            print("ui_path_ros2:" + ui_path_ros2)
+        # Set window properties
+        self.setWindowTitle('Layout Example')
+        self.setGeometry(100, 100, 300, 150)
 
-        if "ui_file" in locals():
-            ui_file.open(QFile.ReadOnly)
-            loader.load(ui_file, self)
-            ui_file.close()
+        # Connect signals to slots
+        btn1.clicked.connect(lambda: lst.addItem('Button 1 clicked'))
+        btn2.clicked.connect(lambda: lst.addItem('Button 2 clicked'))
+        btn3.clicked.connect(lambda: lst.addItem('Button 3 clicked'))
 
 
-def main(args=None):
-    rclpy.init(args=args)
+def main(args=None):   
 
-    node = rclpy.create_node('node_manager')
-    # Spin in a separate thread
-    thread = threading.Thread(target=rclpy.spin, args=(node, ), daemon=True)
-    thread.start()
-
-    app = QApplication([])
-    widget = Widget()
-    widget.show()
+    app = QApplication(sys.argv)
+    ex = MainForm()
+    ex.show()
     ret = app.exec_()
-    rclpy.shutdown()
-    thread.join()
-
+    
+    ex.spin_thread.join()
+    sys.exit(ret)
 
 main()
